@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MycoVision</string>
+    <string name="safety_full_text">⚠️ IMPORTANT SAFETY WARNING\n\nMycoVision is a decision-support tool ONLY.\n\n• Never consume a wild mushroom based solely on this application\'s output.\n• AI classification can be wrong, especially with poor image quality, unusual lighting, or rare species.\n• Always consult a qualified mycologist or expert before eating any wild mushroom.\n\n🏥 IF YOU SUSPECT POISONING\n\nCall emergency services immediately. Bring a sample or photo of the mushroom to the hospital. Symptoms may appear hours after ingestion.\n\n🔒 PRIVACY\n\nAll photos and scan results are stored only on your device. MycoVision never uploads your data to external servers.\n\n📸 FOR BEST RESULTS\n\n• Photograph the cap, gills, stem, and base.\n• Use natural daylight.\n• Keep the mushroom in sharp focus.\n• Do not apply filters or crop before scanning.</string>
+</resources>

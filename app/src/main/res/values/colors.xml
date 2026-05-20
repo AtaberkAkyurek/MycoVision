@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="myco_green">#2E7D32</color>
+    <color name="myco_green_dark">#1B5E20</color>
+    <color name="myco_background">#F1F8E9</color>
+    <color name="edible_green">#2E7D32</color>
+    <color name="edible_bg">#E8F5E9</color>
+    <color name="poisonous_red">#C62828</color>
+    <color name="poisonous_bg">#FFEBEE</color>
+    <color name="warning_amber">#F57F17</color>
+    <color name="warning_bg">#FFF8E1</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="on_surface_secondary">#757575</color>
+</resources>

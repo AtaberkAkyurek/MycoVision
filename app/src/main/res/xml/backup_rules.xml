@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- Exclude Room database — scan history is device-local by design -->
+    <exclude domain="database" path="mycovision.db" />
+    <exclude domain="database" path="mycovision.db-shm" />
+    <exclude domain="database" path="mycovision.db-wal" />
+</full-backup-content>
