@@ -9,8 +9,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import com.alpg0.mycovision.databinding.ActivityResultBinding;
-import com.alpg0.mycovision.db.AppDatabase;
-import com.alpg0.mycovision.db.ScanRecord;
 
 public class ResultActivity extends AppCompatActivity {
 
@@ -61,15 +59,18 @@ public class ResultActivity extends AppCompatActivity {
             }
         }
 
-        // ── Save to history on background thread ────────────────────────────
+        // ── Save to MySQL backend on background thread ─────────────────────
         if (imageUri != null && !imageUri.isEmpty()) {
             final String finalLabel = label;
             final float  finalConf  = confFloat;
             final String finalUri   = imageUri;
+            final long   userId     = new SessionManager(this).getUserId();
             new Thread(() -> {
-                ScanRecord record = new ScanRecord(
-                        System.currentTimeMillis(), finalUri, finalLabel, finalConf);
-                AppDatabase.getInstance(this).scanDao().insertScan(record);
+                try {
+                    MysqlClient.insertScan(userId, finalUri, finalLabel, finalConf);
+                } catch (Exception ignored) {
+                    // Server unreachable — scan result still shown on screen
+                }
             }).start();
         }
 

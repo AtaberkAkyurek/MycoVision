@@ -43,7 +43,6 @@ public class ImageInputActivity extends AppCompatActivity {
     private Uri selectedImageUri;
     private MushroomClassifier classifier;
 
-    // ── Camera launcher ────────────────────────────────────────────────────
     private final ActivityResultLauncher<Uri> cameraLauncher =
             registerForActivityResult(new ActivityResultContracts.TakePicture(), success -> {
                 if (success && pendingCameraUri != null) {
@@ -54,7 +53,6 @@ public class ImageInputActivity extends AppCompatActivity {
                 }
             });
 
-    // ── Gallery launcher ───────────────────────────────────────────────────
     private final ActivityResultLauncher<String> galleryLauncher =
             registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
                 if (uri != null) {
@@ -63,14 +61,12 @@ public class ImageInputActivity extends AppCompatActivity {
                 }
             });
 
-    // ── Camera permission launcher ─────────────────────────────────────────
     private final ActivityResultLauncher<String> cameraPermLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
                 if (granted) launchCamera();
                 else showPermissionDenied("Camera");
             });
 
-    // ── Gallery permission launcher ────────────────────────────────────────
     private final ActivityResultLauncher<String> galleryPermLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
                 if (granted) galleryLauncher.launch("image/*");
@@ -180,47 +176,91 @@ public class ImageInputActivity extends AppCompatActivity {
                     return;
                 }
 
-                // Step 1: Verify image contains organic/nature content typical of mushroom photos
+                // Run ML Kit
                 InputImage mlImage = InputImage.fromBitmap(bitmap, 0);
                 ImageLabeler labeler = ImageLabeling.getClient(
                         new ImageLabelerOptions.Builder()
-                                .setConfidenceThreshold(0.10f)
+                                .setConfidenceThreshold(0.30f)
                                 .build());
 
                 List<ImageLabel> labels = Tasks.await(labeler.process(mlImage));
 
-                boolean isMushroomDetected = false;
+                boolean strongMushroomSignal = false;   // direct mushroom keywords (any confidence)
+                boolean weakMushroomSignal = false;     // organic context (plant/wood/tree/forest)
+                boolean strongNonMushroomSignal = false; // clearly something else
+
                 for (ImageLabel label : labels) {
                     String text = label.getText().toLowerCase();
+                    float conf = label.getConfidence();
+
+                    // Strong positive: direct mushroom references (including bracket fungi)
                     if (text.contains("mushroom") || text.contains("fungus") || text.contains("fungi")
                             || text.contains("agaric") || text.contains("toadstool")
                             || text.contains("bolete") || text.contains("chanterelle")
                             || text.contains("truffle") || text.contains("shiitake")
-                            || text.contains("plant") || text.contains("nature")
-                            || text.contains("food") || text.contains("organism")
-                            || text.contains("forest") || text.contains("wood")
-                            || text.contains("macro") || text.contains("ingredient")
-                            || text.contains("vegetable") || text.contains("produce")
-                            || text.contains("organic") || text.contains("flora")
-                            || text.contains("botany") || text.contains("soil")
-                            || text.contains("leaf") || text.contains("grass")
-                            || text.contains("tree") || text.contains("branch")
-                            || text.contains("ground") || text.contains("outdoor")
-                            || text.contains("wild") || text.contains("natural")
-                            || text.contains("biology") || text.contains("specimen")
-                            || text.contains("earth") || text.contains("spore")) {
-                        isMushroomDetected = true;
-                        break;
+                            || text.contains("portobello") || text.contains("morel")
+                            || text.contains("oyster mushroom") || text.contains("amanita")
+                            || text.contains("polypore") || text.contains("bracket")
+                            || text.contains("conk") || text.contains("shelf fungus")) {
+                        strongMushroomSignal = true;
+                    }
+
+                    // Weak positive: organic / forest-floor context (bracket fungi grow on trees!)
+                    if (text.contains("plant") || text.contains("organism") || text.contains("forest")
+                            || text.contains("wood") || text.contains("bark") || text.contains("tree")
+                            || text.contains("macro") || text.contains("soil") || text.contains("leaf")
+                            || text.contains("moss") || text.contains("nature") || text.contains("flora")
+                            || text.contains("botany") || text.contains("ground")
+                            || text.contains("close-up") || text.contains("trunk")) {
+                        weakMushroomSignal = true;
+                    }
+
+                    // Strong negative
+                    if (conf > 0.55f && (text.contains("person") || text.contains("human")
+                            || text.contains("face") || text.contains("selfie")
+                            || text.contains("car") || text.contains("vehicle")
+                            || text.contains("building") || text.contains("architecture")
+                            || text.contains("electronics") || text.contains("computer")
+                            || text.contains("phone") || text.contains("smartphone")
+                            || text.contains("cat") || text.contains("dog")
+                            || text.contains("bird") || text.contains("fish")
+                            || text.contains("horse") || text.contains("insect")
+                            || text.contains("sky") || text.contains("cartoon")
+                            || text.contains("illustration") || text.contains("document")
+                            || text.contains("street") || text.contains("city")
+                            || text.contains("furniture") || text.contains("clothing")
+                            || text.contains("flower") || text.contains("dessert")
+                            || text.contains("drink") || text.contains("snow"))) {
+                        strongNonMushroomSignal = true;
                     }
                 }
 
+                // Run TFLite classification (we'll use it regardless)
+                MushroomClassifier.PredictionResult result = classifier.classify(bitmap);
+                bitmap.recycle();
+
+                // Decision:
+                //  • Strong mushroom keyword → ACCEPT (definitive)
+                //  • Strong non-mushroom signal (and no strong mushroom signal) → REJECT
+                //  • Weak signal (organic context) + no strong negative → ACCEPT
+                //  • Nothing positive at all → REJECT
+                boolean isMushroomDetected;
+                if (strongMushroomSignal) {
+                    isMushroomDetected = true;
+                } else if (strongNonMushroomSignal) {
+                    isMushroomDetected = false;
+                } else if (weakMushroomSignal) {
+                    isMushroomDetected = true;
+                } else {
+                    isMushroomDetected = false;
+                }
+
                 if (!isMushroomDetected) {
-                    bitmap.recycle();
                     runOnUiThread(() -> {
                         binding.progressBar.setVisibility(View.GONE);
                         binding.btnAnalyze.setEnabled(true);
                         new AlertDialog.Builder(this)
-                                .setTitle("No Mushroom Detected")
+                                .setTitle("Not a Mushroom")
                                 .setMessage("This image does not appear to contain a mushroom.\n\nPlease upload a clear, close-up photo of a mushroom for accurate classification.")
                                 .setPositiveButton("OK", null)
                                 .show();
@@ -228,21 +268,18 @@ public class ImageInputActivity extends AppCompatActivity {
                     return;
                 }
 
-                // Step 2: Classify edible vs poisonous
-                MushroomClassifier.PredictionResult result = classifier.classify(bitmap);
-                bitmap.recycle();
-
                 String label = (result.predictedIndex == 1) ? "POISONOUS" : "EDIBLE";
                 String confidence = (int) (result.confidence * 100) + "%";
                 String warning = "This app is a decision-support tool only. Never consume wild mushrooms based solely on this result.";
                 String uriString = imageUri.toString();
+                final String finalLabel = label;
 
                 runOnUiThread(() -> {
                     binding.progressBar.setVisibility(View.GONE);
                     binding.btnAnalyze.setEnabled(true);
 
                     Intent intent = new Intent(ImageInputActivity.this, ResultActivity.class);
-                    intent.putExtra("label", label);
+                    intent.putExtra("label", finalLabel);
                     intent.putExtra("confidence", confidence);
                     intent.putExtra("confidence_float", result.confidence);
                     intent.putExtra("warning", warning);
@@ -269,7 +306,7 @@ public class ImageInputActivity extends AppCompatActivity {
     private void showPermissionDenied(String type) {
         new AlertDialog.Builder(this)
                 .setTitle(type + " Permission Required")
-                .setMessage(type + " permission is needed to use this feature. Please enable it in Settings.")
+                .setMessage(type + " permission is needed to use this feature.")
                 .setPositiveButton("OK", null)
                 .show();
     }

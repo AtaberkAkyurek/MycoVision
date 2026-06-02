@@ -32,6 +32,15 @@
             android:gravity="center" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnExportCsv"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Export CSV"
+            android:textColor="@color/myco_green"
+            android:visibility="gone" />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnClearAll"
             style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="wrap_content"
