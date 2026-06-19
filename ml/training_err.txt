@@ -1,0 +1,15 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1780255187.351234   18104 cpu_feature_guard.cc:227] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: SSE3 SSE4.1 SSE4.2 AVX AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+WARNING:tensorflow:TensorFlow GPU support is not available on native Windows for TensorFlow >= 2.11. Even if CUDA/cuDNN are installed, GPU will not be used. Please use WSL2 or the TensorFlow-DirectML plugin.
+W0000 00:00:1780259254.459134   14580 png_io.cc:96] PNG warning: iCCP: profile 'icc': 0h: PCS illuminant is not D50
+W0000 00:00:1780259325.939496   18104 tf_tfl_flatbuffer_helpers.cc:364] Ignored output_format.
+W0000 00:00:1780259325.940911   18104 tf_tfl_flatbuffer_helpers.cc:367] Ignored drop_control_dependency.
+I0000 00:00:1780259325.943292   18104 reader.cc:83] Reading SavedModel from: C:\Users\ahmet\AppData\Local\Temp\claude\tmpo_nkxm4l
+I0000 00:00:1780259325.964277   18104 reader.cc:52] Reading meta graph with tags { serve }
+I0000 00:00:1780259325.964850   18104 reader.cc:147] Reading SavedModel debug info (if present) from: C:\Users\ahmet\AppData\Local\Temp\claude\tmpo_nkxm4l
+I0000 00:00:1780259326.130925   18104 mlir_graph_optimization_pass.cc:437] MLIR V1 optimization pass is not enabled
+I0000 00:00:1780259326.160038   18104 loader.cc:236] Restoring SavedModel bundle.
+I0000 00:00:1780259327.168855   18104 loader.cc:220] Running initialization op on SavedModel bundle at path: C:\Users\ahmet\AppData\Local\Temp\claude\tmpo_nkxm4l
+I0000 00:00:1780259327.451598   18104 loader.cc:471] SavedModel load for tags { serve }; Status: success: OK. Took 1508643 microseconds.
+I0000 00:00:1780259327.776709   18104 dump_mlir_util.cc:269] disabling MLIR crash reproducer, set env var `MLIR_CRASH_REPRODUCER_DIRECTORY` to enable.

@@ -11,3 +11,7 @@
 local.properties
 # Claude session metadata
 .claude/
+
+# ML
+ml/dataset/
+ml/mushroom_model.keras
